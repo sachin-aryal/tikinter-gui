@@ -12,10 +12,9 @@ class BankAccount():
         """Function to deposit an amount to the account balance. Raises an
            exception if it receives a value that cannot be cast to float."""
         try:
-            amount = float(amount)
-            self.balance += amount
+            self.balance += float(amount)
         except ValueError:
-            raise ValueError("Amount should be number")
+            raise ValueError("please enter valid amount")
         except Exception as ex:
             raise Exception(str(ex))
 
@@ -25,13 +24,12 @@ class BankAccount():
            an exception if the amount to withdraw is greater than the available
            funds in the account."""
         try:
-            amount = float(amount)
-            if amount <= float(self.balance):
-                self.balance -= amount
+            if float(amount) <= float(self.balance):
+                self.balance -= float(amount)
             else:
-                raise Exception("Withdraw amount is higher than account balance.")
+                raise Exception("entered amount is more than account balance")
         except ValueError:
-            raise ValueError("Amount should be number")
+            raise ValueError("please enter valid amount")
         except Exception as ex:
             raise Exception(str(ex))
 
@@ -59,7 +57,7 @@ class BankAccount():
                 account_file.write(transaction[0]+"\n")
                 account_file.write(str(transaction[1])+"\n")
 
-    def reset(self):
+    def clear_account(self):
         """
         Reset all attributes to their initial state
         :return: 

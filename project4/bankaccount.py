@@ -6,18 +6,15 @@ class BankAccount():
         self.pin_number = ""
         self.balance = 0.0
         self.interest_rate = 0.0
-        self.transaction_list = list()
+        self.transaction_list = []
 
     def deposit_funds(self, amount):
         """Function to deposit an amount to the account balance. Raises an
            exception if it receives a value that cannot be cast to float."""
         try:
-            amount = float(amount)
-            self.balance += amount
+            self.balance = self.balance + float(amount)
         except ValueError:
-            raise ValueError("Amount should be number")
-        except Exception as ex:
-            raise Exception(str(ex))
+            raise ValueError("entered amount is not a number.")
 
     def withdraw_funds(self, amount):
         """Function to withdraw an amount from the account balance. Raises an
@@ -25,13 +22,13 @@ class BankAccount():
            an exception if the amount to withdraw is greater than the available
            funds in the account."""
         try:
-            amount = float(amount)
-            if amount <= float(self.balance):
-                self.balance -= amount
+            temp_amount = float(amount)
+            if temp_amount <= float(self.balance):
+                self.balance -= temp_amount
             else:
-                raise Exception("Withdraw amount is higher than account balance.")
+                raise Exception("withdraw amount requested is higher than your account balance")
         except ValueError:
-            raise ValueError("Amount should be number")
+            raise ValueError("entered amount is not a number.")
         except Exception as ex:
             raise Exception(str(ex))
 
@@ -39,9 +36,9 @@ class BankAccount():
         """Function to create and return a string of the transaction list. Each transaction
            consists of two lines - either the word "Deposit" or "Withdrawal" on
            the first line, and then the amount deposited or withdrawn on the next line."""
-        transaction_string = ""
-        for transaction in self.transaction_list:
-            transaction_string += transaction[0]+":"+str(transaction[1])+"\n"
+        transaction_string = ''
+        for each_transaction in self.transaction_list:
+            transaction_string = transaction_string + each_transaction[0]+":"+str(each_transaction[1])+"\n"
         return transaction_string
 
     def save_to_file(self):
@@ -50,14 +47,14 @@ class BankAccount():
            precise order) are the first four lines - there are then two lines
            per transaction as outlined in the above 'get_transaction_string'
            function."""
-        with open(str(self.account_number)+".txt", "w") as account_file:
-            account_file.write(str(self.account_number)+"\n")
-            account_file.write(self.pin_number+"\n")
-            account_file.write(str(self.balance)+"\n")
-            account_file.write(str(self.interest_rate)+"\n")
-            for transaction in self.transaction_list:
-                account_file.write(transaction[0]+"\n")
-                account_file.write(str(transaction[1])+"\n")
+        with open(str(self.account_number)+".txt", "w") as file_account:
+            file_account.write(str(self.account_number)+"\n")
+            file_account.write(self.pin_number+"\n")
+            file_account.write(str(self.balance)+"\n")
+            file_account.write(str(self.interest_rate)+"\n")
+            for each_transaction in self.transaction_list:
+                file_account.write(each_transaction[0]+"\n")
+                file_account.write(str(each_transaction[1])+"\n")
 
     def reset(self):
         """
@@ -68,4 +65,4 @@ class BankAccount():
         self.pin_number = ""
         self.balance = 0.0
         self.interest_rate = 0.0
-        self.transaction_list = list()
+        self.transaction_list = []

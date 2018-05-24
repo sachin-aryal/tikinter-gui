@@ -2,10 +2,10 @@ class BankAccount():
     def __init__(self):
         """Constructor to set account_number to '0', pin_number to an empty string,
            balance to 0.0, interest_rate to 0.0 and transaction_list to an empty list."""
-        self.account_number = "0"
+        self.account_number = 0
         self.pin_number = ""
         self.balance = 0.0
-        self.interest_rate = 12.0
+        self.interest_rate = 0.0
         self.transaction_list = []
 
     def deposit_funds(self, amount):
@@ -27,7 +27,7 @@ class BankAccount():
             if amount <= float(self.balance):
                 self.balance -= amount
             else:
-                raise Exception("entered amount is higher than account avilable balance.")
+                raise Exception("entered amount is higher than account available balance.")
         except ValueError:
             raise ValueError("invalid amount entered.")
         except Exception as ex:
@@ -48,8 +48,8 @@ class BankAccount():
            precise order) are the first four lines - there are then two lines
            per transaction as outlined in the above 'get_transaction_string'
            function."""
-        with open(self.account_number+".txt", "w") as file_account:
-            file_account.write(self.account_number+"\n")
+        with open(str(self.account_number)+".txt", "w") as file_account:
+            file_account.write(str(self.account_number)+"\n")
             file_account.write(self.pin_number+"\n")
             file_account.write(str(self.balance)+"\n")
             file_account.write(str(self.interest_rate)+"\n")
@@ -57,13 +57,13 @@ class BankAccount():
                 file_account.write(transaction_tuple[0]+"\n")
                 file_account.write(str(transaction_tuple[1])+"\n")
 
-    def reset(self):
+    def reset_account(self):
         """
         Reset all attributes to their initial state
         :return: 
         """
-        self.account_number = "0"
+        self.account_number = 0
         self.pin_number = ""
         self.balance = 0.0
-        self.interest_rate = 12.0
+        self.interest_rate = 0.0
         self.transaction_list = []

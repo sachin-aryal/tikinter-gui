@@ -16,7 +16,7 @@ win.geometry("440x640")
 win.winfo_toplevel().title("FedUni Banking")
 
 # The account number label
-account_pin__number_label = tk.Label(win, text="Account Number/PIN")
+account_and_pin_label = tk.Label(win, text="Account Number/PIN")
 
 # The account number entry and associated variable
 account_number_var = tk.StringVar()
@@ -25,18 +25,18 @@ account_number_entry = tk.Entry(win, textvariable=account_number_var, width=15)
 account_number_entry.focus_set()
 
 # Pin number label
-account_number_label = tk.Label(win, text="Account Number")
+account_number_label = tk.Label(win, text="Account Number", width=30)
 
 # The pin number entry and associated variable.
 # Note: Modify this to 'show' PIN numbers as asterisks (i.e. **** not 1234)
 pin_number_var = tk.StringVar()
 pin_number_var.set("7890")
-account_pin_entry = tk.Entry(win, text='PIN Number', show="*", textvariable=pin_number_var, state=DISABLED, width=15)
+account_pin_entry = tk.Entry(win, text='PIN Number', show="*", textvariable=pin_number_var, state=DISABLED)
 
 # The balance label and associated variable
 balance_var = tk.StringVar()
 balance_var.set('Balance: $0.00')
-balance_label = tk.Label(win, text="Balance: $0.00", wraplength=70)
+balance_label = tk.Label(win, text="Balance: $0.00", width=20)
 
 # The Entry widget to accept a numerical value to deposit or withdraw
 amount_entry_var = tk.DoubleVar()
@@ -64,12 +64,12 @@ def handle_pin_button(event):
     # Limit to 4 chars in length
     pin_number = pin_number_var.get()
     if len(pin_number) == 4:
-        tk.messagebox.showerror(title="Error", message="max length for pin number is 4")
+        tk.messagebox.showerror(title="Error", message="please enter 4 digits pin")
         return
+
     # Set the new pin number on the pin_number_var
     pin_number = pin_number_var.get()
-    button = event.widget
-    pin_number += str(button["text"])
+    pin_number += str(event.widget)
     pin_number_var.set(pin_number)
 
 
@@ -79,10 +79,9 @@ def log_in(event):
     account_number = account_number_var.get()
     if len(account_number) == 0:
         # Reset account object
-        account.reset()
-        tk.messagebox.showerror(title="Error", message="Account number can not be empty.")
+        account.clear_account()
+        tk.messagebox.showerror(title="Error", message="account number is required field.")
         return
-    pin_number = pin_number_var.get()
     file_name = account_number + ".txt"
     if os.path.isfile(file_name):
         # Try to open the account file for reading
@@ -97,11 +96,12 @@ def log_in(event):
                 data.append(line)
         if (len(data)) >= 6:
             # First line is account number
-            # Second line is PIN number, raise exceptionk if the PIN entered doesn't match account PIN read
+            # Second line is PIN number, raise exception if the PIN entered doesn't match account PIN read
             stored_pin_number = data[1]
+            pin_number = pin_number_var.get()
             if pin_number != stored_pin_number:
                 # Reset account object
-                account.reset()
+                account.clear_account()
                 tk.messagebox.showerror(title="Error", message="Entered PIN doesn't match account PIN")
                 return
 
@@ -121,8 +121,8 @@ def log_in(event):
             interest_rate = 0.33
             transaction_list = list()
     else:
-        account.reset()
-        tk.messagebox.showerror(title="Error", message="Invalid account number.")
+        account.clear_account()
+        tk.messagebox.showerror(title="Error", message="account number not found on bank")
         return
 
     account.account_number = account_number
@@ -146,7 +146,7 @@ def save_and_log_out():
     # Save the account with any new transactions
     account.save_to_file()
     # Reset the bank acount object
-    account.reset()
+    account.clear_account()
     # Reset the account number and pin to blank
     account_number_var.set("")
     pin_number_var.set("")
@@ -197,7 +197,7 @@ def perform_withdrawal():
     # Try to increase the account balance and append the deposit to the account file
     try:
         withdraw_amount = amount_entry_var.get()
-        account.withdraw_funds(withdraw_amount)  # Will increase the account balance for valida amount
+        account.withdraw_funds(withdraw_amount)
     except Exception as ex:
         tk.messagebox.showerror(title="Error", message=str(ex))
         return
@@ -236,7 +236,6 @@ def remove_all_widgets():
 def read_line_from_account_file():
     """Function to read a line from the accounts file but not the last newline character.
        Note: The account_file must be open to read from for this function to succeed."""
-    global account_file
     return account_file.readline()[0:-1]
 
 
@@ -247,19 +246,15 @@ def plot_interest_graph():
 
     # This code to add the plots to the window is a little bit fiddly so you are provided with it.
     # Just make sure you generate a list called 'x' and a list called 'y' and the graph will be plotted correctly.
-    P = account.balance
-    r = account.interest_rate
-    n = 12.0
-    t = 0.083
+    principle_amount = account.balance
+    rate = account.interest_rate
     x = list()
     y = list()
     for i in range(1, 13):
-        temp1 = 1 + (r / n)
-        temp2 = 1  # 12*(1/12) = 1
-        A = (P * math.pow(temp1, temp2))
-        P = A
+        p_with_interest = (principle_amount * math.pow((1 + (rate / 12.0)), 1))
+        principle_amount = p_with_interest
         x.append(i)
-        y.append(A)
+        y.append(p_with_interest)
     figure = Figure(figsize=(5, 2), dpi=100)
     figure.suptitle('Cumulative Interest 12 Months')
     a = figure.add_subplot(111)
@@ -281,70 +276,71 @@ def create_login_screen():
 
     # 'FedUni Banking' label here. Font size is 32.
 
-    fed_ui_banking = tk.Label(win, text="FedUni Banking", font=("Helvetica", 32))
+    fed_ui_banking = tk.Label(win, text="FedUni Banking", font=("Times New Roman", 32))
     fed_ui_banking.grid(column=0, row=0, columnspan=3)
 
     # ----- Row 1 -----
 
     # Acount Number / Pin label here
-    account_pin__number_label.grid(column=0, row=1, sticky=N + S + W + E)
+    account_and_pin_label.grid(column=0, row=1, sticky=NSEW)
 
     # Account number entry here
-    account_number_entry.grid(column=1, row=1, sticky=N + S + W + E)
+    account_number_entry.grid(column=1, row=1, sticky=NSEW)
 
     # Account pin entry here
-    account_pin_entry.grid(column=2, row=1, sticky=N + S + W + E)
+    account_pin_entry.grid(column=2, row=1, sticky=NSEW)
 
     # ----- Row 2 -----
     # Buttons 1, 2 and 3 here. Buttons are bound to 'handle_pin_button' function via '<Button-1>' event.
-    column_index = 0
+    index = 0
     for i in range(1, 4):
         button = tk.Button(win, text=i)
         button.bind("<Button-1>", handle_pin_button)
-        button.grid(column=column_index, row=2, sticky=N + S + W + E)
-        column_index += 1
-    column_index = 0
+        button.grid(column=index, row=2, sticky=NSEW)
+        index += 1
+
+    index = 0
     # ----- Row 3 -----
     # Buttons 4, 5 and 6 here. Buttons are bound to 'handle_pin_button' function via '<Button-1>' event.
     for i in range(4, 7):
         button = tk.Button(win, text=i)
         button.bind("<Button-1>", handle_pin_button)
-        button.grid(column=column_index, row=3, sticky=N + S + W + E)
-        column_index += 1
+        button.grid(column=index, row=3, sticky=NSEW)
+        index += 1
 
-    column_index = 0
+    index = 0
     # ----- Row 4 -----
     # Buttons 7, 8 and 9 here. Buttons are bound to 'handle_pin_button' function via '<Button-1>' event.
     for i in range(7, 10):
         button = tk.Button(win, text=i)
         button.bind("<Button-1>", handle_pin_button)
-        button.grid(column=column_index, row=4, sticky=N + S + W + E)
-        column_index += 1
+        button.grid(column=index, row=4, sticky=NSEW)
+        index += 1
 
     # ----- Row 5 -----
     # Cancel/Clear button here. 'bg' and 'activebackground' should be 'red'. But calls 'clear_pin_entry' function.
-    button = tk.Button(win, text="Clear/Cancel", bg='red', activebackground="red")  # May not work in MAC OSX
+    button = tk.Button(win, text="Clear/Cancel", bg='red', activebackground="red")
     button.bind("<Button-1>", clear_pin_entry)
-    button.grid(column=0, row=5, sticky=N + S + W + E)
+    button.grid(column=0, row=5, sticky=NSEW)
 
     # Button 0 here
     button = tk.Button(win, text=0)
     button.bind("<Button-1>", handle_pin_button)
-    button.grid(column=1, row=5, sticky=N + S + W + E)
+    button.grid(column=1, row=5, sticky=NSEW)
 
     # Login button here. 'bg' and 'activebackground' should be 'green'). Button calls 'log_in' function.
     button = tk.Button(win, text="Login", bg="green", activebackground="green")
     button.bind("<Button-1>", log_in)
-    button.grid(column=2, row=5, sticky=N + S + W + E)
+    button.grid(column=2, row=5, sticky=NSEW)
 
     # ----- Set column & row weights -----
 
     # Set column and row weights. There are 5 columns and 6 rows (0..4 and 0..5 respectively)
-    for row in range(0, 6):
-        win.rowconfigure(row, weight=1)
-
     for column in range(0, 3):
         win.columnconfigure(column, weight=1)
+
+    for row in range(0, 6):
+        win.rowconfigure(row, weight=1)
 
 
 def create_account_screen():
@@ -353,36 +349,33 @@ def create_account_screen():
     # ----- Row 0 -----
 
     # FedUni Banking label here. Font size should be 24.
-    fed_ui_banking = tk.Label(win, text="FedUni Banking", font=("Helvetica", 24))
+    fed_ui_banking = tk.Label(win, text="FedUni Banking", font=("Times New Roman", 24))
     fed_ui_banking.grid(column=0, row=0, columnspan=5)
 
     # ----- Row 1 -----
 
     # Account number label here
-    account_number_label["text"] = "Account Number:" + account_number_var.get()
-    account_number_label.config(width=30, font=("Helvetica", 13))
-    account_number_label.grid(column=0, row=1, sticky=N + S + W + E)
+    account_number_label["text"] = "Account Number: " + account_number_var.get()
+    account_number_label.grid(column=0, row=1, sticky=NSEW)
     # Balance label here
-    balance_label.config(width=20)
-    balance_label.grid(column=1, row=1, sticky=N + S + W + E)
+    balance_label.grid(column=1, row=1, sticky=NSEW)
     # Log out button here
-    logout_button = tk.Button(win, text="Logout", command=save_and_log_out, width=20)
-    logout_button.grid(column=2, row=1, columnspan=2)
+    logout_button = tk.Button(win, text="Logout", command=save_and_log_out, width=24)
+    logout_button.grid(column=2, row=1, sticky=NSEW, columnspan=2)
 
     # ----- Row 2 -----
 
     # Amount label here
-    amount_label = tk.Label(win, text="Amount($)", width=10)
-    amount_label.grid(column=0, row=2, sticky=N + S + W + E)
+    amount_label = tk.Label(win, text="Amount")
+    amount_label.grid(column=0, row=2, sticky=NSEW)
     # Amount entry here
-    balance_label.config(width=15)
-    amount_entry.grid(column=1, row=2, sticky=N + S + W + E)
+    amount_entry.grid(column=1, row=2, sticky=NSEW)
     # Deposit button here
-    deposit_button = tk.Button(win, text="Deposit", command=perform_deposit, width=14)
-    deposit_button.grid(column=2, row=2, sticky=N + S + W + E)
+    deposit_button = tk.Button(win, text="Deposit", command=perform_deposit, width=12)
+    deposit_button.grid(column=2, row=2, sticky=NSEW)
     # Withdraw button here
-    winthdraw_button = tk.Button(win, text="Withdraw", command=perform_withdrawal, width=15)
-    winthdraw_button.grid(column=3, row=2, sticky=N + S + W + E)
+    winthdraw_button = tk.Button(win, text="Withdraw", command=perform_withdrawal, width=12)
+    winthdraw_button.grid(column=3, row=2, sticky=NSEW)
 
     # NOTE: Bind Deposit and Withdraw buttons via the command attribute to the relevant deposit and withdraw
     #       functions in this file. If we "BIND" these buttons then the button being pressed keeps looking as
@@ -393,17 +386,16 @@ def create_account_screen():
 
     # Declare scrollbar (text_scrollbar) here (BEFORE transaction text widget)
     text_scrollbar = tk.Scrollbar(win, command=transaction_text_widget.yview)
-
     transaction_string = account.get_transaction_string()
     transaction_text_widget.insert(END, transaction_string)
     # Add transaction Text widget and configure to be in 'disabled' mode so it cannot be edited. Note: Set the
     # yscrollcommand to be 'text_scrollbar.set' here so that it actually scrolls the Text widget Note: When updating
     # the transaction text widget it must be set back to 'normal mode' (i.e. state='normal') for it to be edited
     transaction_text_widget.config(state=DISABLED)
-    transaction_text_widget.grid(column=0, row=3, columnspan=4, sticky=N + S + W + E)
+    transaction_text_widget.grid(column=0, row=3, columnspan=4, sticky=NSEW)
 
     # Now add the scrollbar and set it to change with the yview of the text widget
-    text_scrollbar.grid(column=5, row=3, sticky=N + S + W + E)
+    text_scrollbar.grid(column=5, row=3, sticky=NSEW)
     transaction_text_widget['yscrollcommand'] = text_scrollbar.set
     transaction_text_widget.see("end")
 
