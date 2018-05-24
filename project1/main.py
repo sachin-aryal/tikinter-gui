@@ -19,6 +19,7 @@ account_pin__number_lable = tk.Label(win, text="Account Number/PIN")
 
 # The account number entry and associated variable
 account_number_var = tk.StringVar()
+account_number_var.set("123456")
 account_number_entry = tk.Entry(win, textvariable=account_number_var, width=15)
 account_number_entry.focus_set()
 
@@ -28,12 +29,13 @@ account_number_label = tk.Label(win, text="Account Number")
 # The pin number entry and associated variable.
 # Note: Modify this to 'show' PIN numbers as asterisks (i.e. **** not 1234)
 pin_number_var = tk.StringVar()
+pin_number_var.set("1234")
 account_pin_entry = tk.Entry(win, text='PIN Number', show="*", textvariable=pin_number_var, state=DISABLED, width=15)
 
 # The balance label and associated variable
 balance_var = tk.StringVar()
 balance_var.set('Balance: $0.00')
-balance_label = tk.Label(win, text="Balance: $0.00")
+balance_label = tk.Label(win, text="Balance: $0.00", wraplength=70)
 
 # The Entry widget to accept a numerical value to deposit or withdraw
 amount_entry_var = tk.DoubleVar()
@@ -254,7 +256,7 @@ def plot_interest_graph():
     canvas = FigureCanvasTkAgg(figure, master=win)
     canvas.draw()
     graph_widget = canvas.get_tk_widget()
-    graph_widget.grid(row=4, column=0, columnspan=5, sticky='nsew')
+    graph_widget.grid(row=4, column=0, columnspan=5, sticky='nsew', padx=10)
 
 
 # ---------- UI Screen Drawing Functions ----------
@@ -331,8 +333,6 @@ def create_login_screen():
     for column in range(0, 3):
         win.columnconfigure(column, weight=1)
 
-    print(win.grid_size())
-
 
 def create_account_screen():
     """Function to create the account screen."""
@@ -341,31 +341,34 @@ def create_account_screen():
 
     # FedUni Banking label here. Font size should be 24.
     fed_ui_banking = tk.Label(win, text="FedUni Banking", font=("Helvetica", 24))
-    fed_ui_banking.grid(column=1, row=0, columnspan=5)
+    fed_ui_banking.grid(column=0, row=0, columnspan=5)
 
     # ----- Row 1 -----
 
     # Account number label here
-    account_number_label["text"] = "Account Number:123456"+account_number_var.get()
-    account_number_label.grid(column=0, row=1, sticky=E)
+    account_number_label["text"] = "Account Number:"+account_number_var.get()
+    account_number_label.config(width=30, font=("Helvetica", 13))
+    account_number_label.grid(column=0, row=1, sticky=N+S+W+E)
     # Balance label here
+    balance_label.config(width=20)
     balance_label.grid(column=1, row=1, sticky=N+S+W+E)
     # Log out button here
-    logout_button = tk.Button(win, text="Logout", command=save_and_log_out)
-    logout_button.grid(column=2, row=1, sticky=N+S+W+E, columnspan=2)
+    logout_button = tk.Button(win, text="Logout", command=save_and_log_out, width=20)
+    logout_button.grid(column=2, row=1, columnspan=2)
 
     # ----- Row 2 -----
 
     # Amount label here
-    amount_label = tk.Label(win, text="Amount($)")
-    amount_label.grid(column=0, row=2, sticky=W)
+    amount_label = tk.Label(win, text="Amount($)", width=10)
+    amount_label.grid(column=0, row=2, sticky=N+S+W+E)
     # Amount entry here
+    balance_label.config(width=15)
     amount_entry.grid(column=1, row=2, sticky=N+S+W+E)
     # Deposit button here
-    deposit_button = tk.Button(win, text="Deposit", command=perform_deposit)
-    deposit_button.grid(column=2, row=2, sticky=W)
+    deposit_button = tk.Button(win, text="Deposit", command=perform_deposit, width=14)
+    deposit_button.grid(column=2, row=2, sticky=N+S+W+E)
     # Withdraw button here
-    winthdraw_button = tk.Button(win, text="Withdraw", command=perform_withdrawal)
+    winthdraw_button = tk.Button(win, text="Withdraw", command=perform_withdrawal, width=15)
     winthdraw_button.grid(column=3, row=2, sticky=N+S+W+E)
 
     # NOTE: Bind Deposit and Withdraw buttons via the command attribute to the relevant deposit and withdraw
@@ -408,8 +411,7 @@ def create_account_screen():
 
 
 # ---------- Display Login Screen & Start Main loop ----------
-# create_login_screen()
-create_account_screen()
+create_login_screen()
 while True:
     try:
         win.mainloop()  # some library issue may throw UnicodeDecodeError while scrolling scrollbar.
